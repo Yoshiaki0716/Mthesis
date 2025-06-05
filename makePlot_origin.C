@@ -1,9 +1,5 @@
-// ...existing code...
-//c1->cd(2);   c1->SetLogy(0);
-//hist_IBL_dEdxVsP[0]->GetXaxis()->SetTitle("X-axis Label"); // X軸ラベルを設定
-//hist_IBL_dEdxVsP[0]->GetYaxis()->SetTitle("Y-axis Label"); // Y軸ラベルを設定
-//hist_IBL_dEdxVsP[0]->Draw("colz"); // colzオプションを追加
-// ...existing code...//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+////_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
 //
 // Understanding primitve variables.
 //
