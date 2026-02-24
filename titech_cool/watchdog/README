@@ -1,0 +1,3 @@
+cronjob description
+
+* * * * * cd ~/titech_cool/watchdog; ./watchdog.sh

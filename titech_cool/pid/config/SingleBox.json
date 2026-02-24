@@ -1,0 +1,72 @@
+	{
+    
+    "comment:devices" : "Register the list of devices to be controlled by the pidServer here. The dictionary key name represents the device controller instance. The dictionary value comprises the class name and its initial configuration.　Typically the configuration contains SPI/I2C pinouts, or USB device path, baud rate (for serial comm.) and readout calibration constants.",
+	    
+    "devices" : {
+
+	    "peltierControl" : { "module"   : "PeltierControl",
+				 "class"    : "TakasagoKXControl",
+			         "port"     : "/dev/ttyUSB_TakasagoKX", 
+			         "address"  : 1,
+			         "baud"     : 9600
+			       },
+
+            "dcsControl" : { "module" : "ArduinoSingleBoxDcsController",
+			     "class"  : "ArduinoSingleBoxDcsController",
+			     "port"   : "/dev/ttyUSB_ArduinoDcsController",
+			     "baud"   : 115200 },
+	    
+            "ntcReader" : { "module" : "ArduinoNTCReader",
+			     "class"  : "ArduinoNTCReader",
+			     "port"   : "/dev/ttyUSB_ArduinoDcsController",
+			     "baud"   : 9600 }
+    },
+
+    
+    "comment:pidControl" : "object is the temperature to be controlled, and its name is specified as T_{keyname} where keyname is one of keys in sensorMap above.",
+    
+    "pidControl" : {
+	"object"		: "T_chuck",
+	"object_alt"            : "T_chuck",
+	"minT"                  : -35.0,
+	"maxT"                  : 30.0,
+	"T_default"             : 25.0,
+	"interval"		: 1.0,
+	"interlockMargin"       : 10.0,
+	"integralDuration"	: 120,
+	"Pcontrol"		: 0.0035,
+	"Icontrol"		: 0.003,
+	"Dcontrol"		: 0.16,
+	"maxPfeedback"		: 0.20,
+	"maxIfeedback"		: 0.01,
+	"maxDfeedback"		: 0.10,
+	"maxV"			: 12.0,
+	"tOffsetP"		: 60.0,
+	"tOffsetI"		: 60.0,
+	"tOffsetD"		: 0.0
+    },
+    
+    "pidMonitor" : {
+	    "maxHistory" : 2000
+    },
+
+    
+    "comment:stability" : "parameters to judge temperature stability.",
+	    
+    "stability" : {
+	    "stabilityGaugingLength"  : 30,
+	    "deviationTolerance"      : 0.75,
+	    "Tstdev"                  : 0.50,
+	    "Vstdev"                  : 0.40
+    },
+
+    
+    "comment:influxDB" : "configuration of dcsDB recording. For the dictionary 'channels', keynames are parameter names stored in PidControl as data, while values are field names of the influxDB. The value names follow Shohei's convention.",
+    
+    "influxDB" : {
+	    "database"    : "dcsDB",
+	    "hostname"    : "atlastit01.kek.jp",
+	    "port"        : 8086,
+	    "measurement" : "TitechCoolingBox02"
+    }
+}

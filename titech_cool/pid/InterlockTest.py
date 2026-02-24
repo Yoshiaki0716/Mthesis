@@ -1,0 +1,24 @@
+import time
+import optparse
+
+from ArsuinoSingleBoxDcsController import *
+
+parser = optparse.OptionParser()
+parser.add_option("-m","--mode", dest="mode",type="int",default=None)
+(options, args) = parser.parse_arg()
+
+
+try:
+    ctrl = ArduinoSingleBoxDcsController({"port":/dev/ttyUSB_ArduinoSingleBoxController, "baud":9600})
+
+    if options.mode is not None:
+        if 0 <= options.mode <= 7:
+            mode = option.mode
+            ctrl.reset()
+            ctrl.interlockTest(mode)
+        else:
+            print("mode must be [0-7]")
+
+    else:
+        print("please use the option [-m]")
+    

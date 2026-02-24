@@ -1,0 +1,102 @@
+{
+    "devices" : {
+	
+	"peltierControl" : { "module"	: "PeltierControl",
+			     "class"	: "TakasagoKXControl",
+			     "port"     : "/dev/ttyUSB0", 
+			     "address"  : 1,
+			     "baud"     : 9600
+			   },
+	
+	"SHT85"   : { "class" : "ArduinoSHT85Control",
+		      "port"  : "/dev/ttyACM0",
+		      "baud"  : 9600
+		    },
+	
+	"BME280"  : { "class" : "ArduinoBME280Control",
+		      "port"  : "/dev/ttyACM0",
+		      "baud"  : 9600
+		    },
+	
+	"MCP3208" : { "module"	: "MCP3208",
+		      "class"	: "NtcReader",
+		      "pinout"	: { "ss" : 31, "clk" : 33, "miso" : 35, "mosi" : 37 },
+		      "channel" : 0,
+		      "calib"	: { "R25" : 100, "Rext" : 470, "B" : 4281, "T0" : 298.81 }
+		    },
+	
+	"MAX31855" : { "module"		: "MAX31855",
+		       "class"		: "ThermistorReader",
+		       "pinout"		: { "ss" : 15 },
+		       "channel"	: 0,
+		       "calib"		: [ 0.0006892, -0.05584, 0.99 ]
+		     },
+
+	"flipper" : { "class" : "ArduinoFlipper",
+		      "pins"  : [ 7, 10 ]
+		    },
+	
+	"fanCtrl" : { "class" : "CpuFanControl",
+		      "port"  : "/dev/ttyACM1",
+		      "baud"  : 9600
+		    }
+	
+    },
+
+    "sensorMap" : {
+	"base"		: "MAX31855",
+	"surface"	: "MCP3208",
+	"air"		: "SHT85",
+	"air2"		: "BME280"
+    },
+
+    "pidControl" : {
+	"object"		: "T_surface",
+	"T_target"		: 20,
+	"interval"		: 7.0,
+	"integralDuration"	: 10,
+	"Pcontrol"		: 0.015,
+	"Icontrol"		: 0.02,
+	"Dcontrol"		: 3.5,
+	"maxPfeedback"		: 0.4,
+	"maxIfeedback"		: 0.1,
+	"maxDfeedback"		: 0.6,
+	"maxV"			: 12.0
+    },
+
+    "pidMonitor" : {
+	"maxHistory" : 500
+    },
+
+    "stability" : {
+	"stabilityGaugingLength"  : 15,
+	"deviationTolerance"      : 0.75,
+	"Tstdev"                  : 0.50,
+	"Vstdev"                  : 0.40
+    },
+
+    "influxDB" : {
+	"database"    : "dcsDB",
+	"hostname"    : "192.168.11.10",
+	"port"        : 8086,
+	"measurement" : "CpuFanCoolingBox",
+	"channels" : { 
+	    "T_target"	: "Temperature (ch.target) [C]",
+	    "T_surface" : "Temperature (ch.Surface) [C]",
+	    "T_base"	: "Temperature (ch.Base) [C]",
+	    "T_air"	: "Temperature (ch.Air) [C]",
+	    "T_air2"	: "Temperature (ch.Air2) [C]",
+	    "V"		: "Set. Voltage (ch.Peltier) [V]",
+	    "I"		: "Current (ch.Peltier) [A]",
+	    "Vd"	: "PID Feedback (ch.D) [V]",
+	    "Vi"	: "PID Feedback (ch.I) [V]",
+	    "Vp"	: "PID Feedback (ch.P) [V]",
+	    "dV"	: "PID Feedback (ch.sum) [V]",
+	    "RH_air"	: "Relative Humidity (ch.Air) [%]",
+	    "RH_air2"	: "Relative Humidity (ch.Air2) [%]",
+	    "P_air2"	: "Pressure (ch.Air2) [kPa]",
+	    "isConverging": "isConverging (ch.sum)",
+	    "isStable"	: "isStable (ch.sum)"
+	}
+    }
+}

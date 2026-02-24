@@ -1,0 +1,15 @@
+python-daemon
+datetime
+influxdb
+matplotlib
+numpy
+pandas
+psutil
+pyserial
+pyqt5
+pyvisa
+pyvisa-py
+coloredlogs
+verboselogs
+gnureadline
+skpy

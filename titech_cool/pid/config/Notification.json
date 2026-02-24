@@ -1,0 +1,12 @@
+{
+    "email_to" : [ "atlas-j-itkprod-lead@ml.post.kek.jp" ],
+    "chatid"   : { "general" : "19:afd1c48f799c476d95469cbac3ae51ab@thread.skype",
+		   "repicdaq1" : "19:eec55a738f9e42cfbb38c53543098cce@thread.skype",
+		   "repicdaq2" : "19:133e528ba7fe4dd6aed1f778c3db76f7@thread.skype",
+		   "repicdaq3" : "19:878e086acc41456882c53811927b9fac@thread.skype",
+		   "repicdaq4" : "19:da7b27255e6041268ad0da0480b96c19@thread.skype",
+		   "repicdaq5" : "19:a28aa0c631ec410ea2b9a44680867b54@thread.skype",
+		   "repicdaq6" : "19:a88929e80343450bb7ec59542cb77591@thread.skype",
+		   "repicdaq7" : "19:ef8c65f7aa464f018b8a16abc14d0448@thread.skype"
+		 }
+}

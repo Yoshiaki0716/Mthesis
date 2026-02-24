@@ -1,0 +1,111 @@
+{
+	    
+    "id" : "CoolingBox05",
+    
+    "comment:devices" : "Register the list of devices to be controlled by the pidServer here. The dictionary key name represents the device controller instance. The dictionary value comprises the class name and its initial configuration.　Typically the configuration contains SPI/I2C pinouts, or USB device path, baud rate (for serial comm.) and readout calibration constants.",
+	    
+    "devices" : {
+	
+	"roomDP" : { "module"  : "InfluxAccess",
+		     "class"   : "InfluxAccess",
+		     "host" : "10.0.0.1",
+		     "port" : 8086,
+		     "database" : "REPIC",
+		     "measurement" : "EnvMon",
+		     "field" : "SHT85 DP"
+		   },
+
+	"roomTemp" : { "module"  : "InfluxAccess",
+		       "class"   : "InfluxAccess",
+		       "host" : "10.0.0.1",
+		       "port" : 8086,
+		       "database" : "REPIC",
+		       "measurement" : "EnvMon",
+		       "field" : "SHT85 Temp"
+		   },
+
+	"roomRH" : { "module"  : "InfluxAccess",
+		     "class"   : "InfluxAccess",
+		     "host" : "10.0.0.1",
+		     "port" : 8086,
+		     "database" : "REPIC",
+		     "measurement" : "EnvMon",
+		     "field" : "SHT85 RH"
+		   },
+
+	"peltierControl" : { "module"   : "PeltierControl",
+			     "class"    : "TexioPFRControl",
+			     "port"     : "/dev/ttyUSB_TexioPFR", 
+			     "address"  : 1,
+			     "baud"     : 9600
+			   },
+
+        "dcsControl" : { "module" : "ArduinoSingleBoxDcsController",
+			 "class"  : "ArduinoSingleBoxDcsController",
+			 "port"   : "/dev/ttyUSB_ArduinoSingleBoxController",
+			 "baud"   : 9600 }
+	
+    },
+
+    
+    "comment:pidControl" : "object is the temperature to be controlled, and its name is specified as T_{keyname} where keyname is one of keys in sensorMap above.",
+    
+    "pidControl" : {
+	"name"                  : "CoolingBox #05",
+        "grafanaID"             : "1283b43da66151b73e1c565d13c5b59c",
+	"object"		: "T_module",
+	"object_alt"            : "T_chuck",
+	"minT"                  : -35.0,
+	"maxT"                  : 30.0,
+	"T_default"             : 25.0,
+	"interval"		: 7.0,
+	"interlockMargin"       : 5.0,
+	"integralDuration"	: 10,
+	"Pcontrol"		: 0.018,
+	"Icontrol"		: 0.025,
+	"Dcontrol"		: 3.00,
+	"maxPfeedback"		: 0.80,
+	"maxIfeedback"		: 0.05,
+	"maxDfeedback"		: 0.60,
+	"maxV"			: 9.4,
+	"tOffsetP"		: 60.0,
+	"tOffsetI"		: 180.0,
+	"tOffsetD"		: 60.0,
+	"mpodIP"                : "10.0.0.2",
+	"mpodLV"                : "u4",
+	"mpodHV"                : "u304",
+	"mpodLVname"            : "LV_daq5",
+	"mpodHVname"            : "HV_daq5",
+	"LVtype"                : "RIGOL",
+        "LVip"                  : "10.0.0.210",
+        "LVch"                  : "2",
+        "HVtype"                : "MPOD",
+        "HVip"                  : "10.0.0.2",
+        "HVch"                  : "u304"
+
+    },
+    
+    "pidMonitor" : {
+	    "maxHistory" : 300
+    },
+
+    
+    "comment:stability" : "parameters to judge temperature stability.",
+	    
+    "stability" : {
+	    "stabilityGaugingLength"  : 30,
+	    "deviationTolerance"      : 0.75,
+	    "Tstdev"                  : 0.50,
+	    "Vstdev"                  : 0.40
+    },
+
+    
+    "comment:influxDB" : "configuration of dcsDB recording. For the dictionary 'channels', keynames are parameter names stored in PidControl as data, while values are field names of the influxDB. The value names follow Shohei's convention.",
+    
+    "influxDB" : {
+	    "database"    : "REPIC",
+	    "hostname"    : "10.0.0.1",
+	    "port"        : 8086,
+	    "measurement" : "CoolingBox05"
+    }
+}

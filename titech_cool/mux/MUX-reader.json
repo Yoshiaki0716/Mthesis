@@ -1,0 +1,6 @@
+{
+   "YARR_DIR":"/home/atlasj/work/ITkpix-v1-Quad/yarr-rc_v1.3.1-20220128/",
+   "controller":"/home/atlasj/work/ITkpix-v1-Quad/yarr-rc_v1.3.1-20220128/configs/controller/specCfg-rd53b-16x1.json",
+   "connectivity":"/home/atlasj/work/ITkpix-v1-Quad/yarr-rc_v1.3.1-20220128/configs/connectivity/example_rd53b_v1.0Q4test_setup_Chip3.json",
+   "muxList":[0,1,2,63]
+}
