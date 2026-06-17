@@ -317,7 +317,7 @@ class ArduinoSingleBoxDcsController:
     def lockStatus(self):
         self.relayStates()
         #return ( self.m_rState['lockState1'] == 0 or self.m_rState['lockState2'] == 0 ) # temporary
-        return self.m_rState['lockState2'] == 1 # temporary
+        return self.m_rState['lockState2'] == 0 # temporary
         #return ( self.m_rState['lockState1'] == 0 and self.m_rState['lockState2'] == 0 )
         
     def readAll(self):

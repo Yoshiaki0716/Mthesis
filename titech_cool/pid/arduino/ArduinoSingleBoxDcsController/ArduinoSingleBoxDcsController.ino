@@ -144,7 +144,7 @@ double readThermocoupleTemp( Adafruit_MAX31855& channel, double ref_value ) {
 
 
 bool isCoverOpen() {
-  return ( lockState1 == 0 || lockState2 == 0 );
+  return ( lockState1 == 0 || lockState2 == ０ );
 }
 
 
@@ -782,7 +782,7 @@ void loop() {
     
   // Module NTC disconnection while cover is closed
   if( Temp_NTC < -50 &&
-      ( lockState1 == 1 || lockState2 == 1 ) &&
+      ( lockState1 == 1 || lockState2 == 0 ) &&
       gInterlockStatus == INTERLOCK_NORMAL) {
       
     digitalWrite( Peltier, LOW );

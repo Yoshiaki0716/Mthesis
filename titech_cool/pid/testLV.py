@@ -1,65 +1,82 @@
-import os
+#!/usr/bin/env python3
 import sys
-import socket
 import time
-import math
-import numpy as np
-from statistics import mean
-from functools import reduce
-from functools import partial
-from operator import add
-import json
-import traceback
-import pprint
-import multiprocessing
-from Kalman import KalmanSmoother
-from DeviceInvoker import *
+import serial
 
-import smtplib
-import datetime
-from email.mime.text import MIMEText
-import subprocess
-import threading
+# ==========================================
+# ⚙️ 環境設定（ご自身の環境に合わせて修正してください）
+# ==========================================
+# TEXIO PFRの絶対パス（/dev/serial/by-id/ 等の固定パスを推奨）
+USB_PORT = '/dev/LV'
+BAUD_RATE = 9600
 
-def RIGOLcmd(ip, channel, RIGOLCommand):
-        """Call the RIGOL helper and return cleaned stdout string.
+# ノイズ丸め込みのしきい値（この値未満は 0 として出力）
+V_TOLERANCE = 1.0  # 0.05V 未満は 0V とみなす
+I_TOLERANCE = 1.0  # 0.01A (10mA) 未満は 0A とみなす
+# ==========================================
 
-        Args:
-            ip: device IP string
-            channel: channel identifier (not used by helper but kept for signature parity)
-            RIGOLCommand: method call string, e.g. 'measureVoltage()'
-        """
-        RIGOLDir = '/nas/dcs/wienermpod_ivi'
-        cmd = f"cd {RIGOLDir}; python3 -c \"from RIGOL_DP821 import RIGOL_DP821_PYVISA; print(RIGOL_DP821_PYVISA().{RIGOLCommand})\" {ip}"
-
-        # run the helper and grab stdout
-        proc = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        out = proc.stdout or ''
-        # return stripped stdout (single-line). If multiple lines, return the last non-empty line
-        lines = [l.strip() for l in out.splitlines() if l.strip()]
-        return lines[-1] if lines else out.strip()
-
-def main():
-    ip = "192.168.10.92"   
-    ch = "2"
+def send_texio_cmd(cmd, expect_response=False):
+    """TEXIOへコマンドを送信し、必要なら返答を読み取る"""
     try:
-        # RIGOLcmd expects (ip, channel, command)
-        vol = float(RIGOLcmd(ip, ch, "measureVoltage()"))
-        curr = float(RIGOLcmd(ip, ch, "measureCurrent()"))
-        if vol > 1.0 and curr > 1.0:
-            is_on = True
-        else:
-            is_on = False
+        with serial.Serial(USB_PORT, BAUD_RATE, timeout=1.0) as ser:
+            time.sleep(0.05) # 接続安定化
+            
+            # リモートモード（PC制御）へ移行
+            ser.write(b':SYSTem:COMMunicate:RLSTate REMote\n')
+            time.sleep(0.05)
+
+            # メインのコマンドを送信
+            ser.write(f'{cmd}\n'.encode())
+            time.sleep(0.05)
+
+            response = None
+            if expect_response:
+                response = ser.readline().decode('utf-8', errors='ignore').strip()
+
+            # ローカルモード（手動操作可能）へ戻す
+            ser.write(b':SYSTem:COMMunicate:RLSTate LOCal\n')
+            time.sleep(0.05)
+
+            return response
     except Exception as e:
-        # デバッグのため例外情報を出す（本番ではログ化）
-        import traceback
-        print("error:", e)
-        traceback.print_exc()
-        # ここは設計次第。判定不能なら None にするのが安全
-        is_on = None
+        # pidServerの誤判定を防ぐため、エラー時は標準エラー出力に逃がす
+        print(f"Serial Error: {e}", file=sys.stderr)
+        return None
 
-    print("is_on:", is_on)
-    return is_on
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("使い方: python3 testLV.py [turnOn | turnOff | measureVoltage | measureCurrent]", file=sys.stderr)
+        sys.exit(1)
 
-if __name__ == '__main__':
-    main()
+    # 柔軟に対応するため、小文字にして判定
+    command = sys.argv[1].lower()
+
+    if command == "on":
+        send_texio_cmd('CURR 6.25')
+        send_texio_cmd('OUTP ON')
+        
+
+    elif command == "off":
+        send_texio_cmd('OUTP OFF')
+
+    elif command == "status":
+        vol_str = send_texio_cmd('MEAS:VOLT?', expect_response=True)
+        curr_str = send_texio_cmd('MEAS:CURR?', expect_response=True)
+
+        if vol_str and curr_str:
+            try:
+                vol = float(vol_str)
+                curr = float(curr_str)
+                # 電圧と電流が両方 1.0 以上の時のみ "1" (ON) と判定
+                if vol > 1.0 and curr > 1.0:
+                    print("1")
+                else:
+                    print("0")
+            except ValueError:
+                print("0")
+        else:
+            print("0")
+
+    else:
+        print(f"Error: Unknown command '{sys.argv[1]}'", file=sys.stderr)
+        sys.exit(1)

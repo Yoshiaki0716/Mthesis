@@ -9,13 +9,13 @@ from ArduinoSHT85Control import *
 from influxdb import InfluxDBClient
 
 # --- 設定 ---
-USB_PORT = "/dev/ttyACM2"
+USB_PORT = "/dev/ttyACM0"
 BAUD_RATE = 9600
 DB_HOST = 'localhost'
 DB_PORT = 8086
 DB_NAME = 'pidDB'
 MEASUREMENT = 'EnvMon'
-LOG_FILE_PATH = '/home/admin/test_REPIC_envlog.txt'
+LOG_FILE_PATH = '/home/admin/titech_cool/pid/test_REPIC_envlog.txt'
 
 try:
     # 初期化

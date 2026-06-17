@@ -5,7 +5,7 @@ from ArduinoSingleBoxDcsController import ArduinoSingleBoxDcsController
 import time
 import matplotlib.pyplot as plt
 
-peltCtrl = TexioPFRControl( { "port":"/dev/ttyUSB_TexioPFR", "address":1, "baud":9600 } )
+peltCtrl = TexioPFRControl( { "port":"/dev/Peltier", "address":1, "baud":9600 } )
 ctrl = ArduinoSingleBoxDcsController( { "port" : "/dev/ttyUSB_ArduinoSingleBoxController", "baud" : 9600, 'useCalib':True } )
 
 peltCtrl.idn()

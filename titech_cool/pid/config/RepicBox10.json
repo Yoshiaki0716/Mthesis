@@ -36,8 +36,8 @@
 		   },
 
 	"peltierControl" : { "module"   : "PeltierControl",
-			     "class"    : "TakasagoKXControl",
-			     "port"     : "/dev/ttyUSB_TakasagoKX", 
+			     "class"    : "TexioPFRControl",
+			     "port"     : "/dev/Peltier", 
 			     "address"  : 1,
 			     "baud"     : 9600
 			   },
@@ -78,13 +78,13 @@
 	"LVip"			: "192.168.10.92",
 	"LVch"			: "2",
 	"LVtype"                : "CUSTOM",
-        "LVOnCmd"               : "echo test; cd /nas/dcs/wienermpod_ivi; python3 -c 'from RIGOL_DP821 import RIGOL_DP821_PYVISA; RIGOL_DP821_PYVISA().turnOn()' 192.168.10.92",
-        "LVOffCmd"              : "echo test; cd /nas/dcs/wienermpod_ivi; python3 -c 'from RIGOL_DP821 import RIGOL_DP821_PYVISA; RIGOL_DP821_PYVISA().turnOff()' 192.168.10.92",
-        "LVIsOnCmd"             : "python3 /home/admin/titech_cool/pid/testLV.py on",
-        "HVtype"                : "CUSTOM",
-        "HVOnCmd"               : "python3 /home/admin/titech_cool/pid/testHV.py on",
-        "HVOffCmd"              : "echo 'test1';python3 /home/admin/titech_cool/pid/testHV.py off",
-        "HVIsOnCmd"             : "python3 /home/admin/titech_cool/pid/testHV.py status"
+    "LVOnCmd"               : "python3 /home/admin/titech_cool/pid/testLV.py on",
+    "LVOffCmd"              : "python3 /home/admin/titech_cool/pid/testLV.py off",
+    "LVIsOnCmd"             : "python3 /home/admin/titech_cool/pid/testLV.py status",
+    "HVtype"                : "CUSTOM",
+    "HVOnCmd"               : "python3 /home/admin/titech_cool/pid/testHV.py on",
+    "HVOffCmd"              : "python3 /home/admin/titech_cool/pid/testHV.py off",
+    "HVIsOnCmd"             : "python3 /home/admin/titech_cool/pid/testHV.py status"
     },
     
     "pidMonitor" : {

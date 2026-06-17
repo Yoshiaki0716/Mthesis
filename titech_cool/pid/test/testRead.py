@@ -86,6 +86,7 @@ def recordToDB( ctrl = None, peltCtrl = None, host = "192.168.10.2", port = 8086
                    'measurement': measurement } ]
         
         pprint.pprint( data_ )
+        print(f"isInterlockEnabled (ch.sum): {int( ctrl.m_rState['lockState2'] == 1 )}")
         now = datetime.datetime.now()
         print( f'{now}: recorded measurements' )
         

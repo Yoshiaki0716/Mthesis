@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from ArduinoSHT85Control import *
 
-sht85 = ArduinoSHT85Control( { "port" : "/dev/ttyACM2", "baud" : 9600 } )
+sht85 = ArduinoSHT85Control( { "port" : "/dev/ttyACM0", "baud" : 9600 } )
 
 while True:
     now = datetime.now()

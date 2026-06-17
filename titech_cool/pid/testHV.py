@@ -1,66 +1,138 @@
-import pyvisa
-import time
+#!/usr/bin/env python3
 import sys
+import time
+import serial
 
-# --- 設定項目 ---
-# 前回の確認結果に基づきポートを指定
-RESOURCE_NAME = "ASRL/dev/ttyUSB0::INSTR" 
-TARGET_VOLTAGE = 120.0  # 目標電圧 (V)
-COMPLIANCE_CURR = 0.0001 # 電流制限 (100uA)
-STEP_VOLTAGE = 10.0      # 1ステップで上げる電圧 (V)
-STEP_DELAY = 0.5         # ステップごとの待ち時間 (秒)
+# ==========================================
+# ⚙️ 環境設定（ご自身の環境に合わせて修正してください）
+# ==========================================
+# Keithley 2400 が繋がっているシリアルポートのパス
+# ※ ls /dev/serial/by-id/ 等で調べて書き換えてください
+USB_PORT = '/dev/ttyUSB0' 
+BAUD_RATE = 9600
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: python3 hv_control.py [on/off]")
-        return
+# 高電圧(HV)の設定値
+TARGET_HV = -113.0  # ONにしたときの最終目標電圧(V)
+STEP_V    = 1.0     # 1回に変化させる電圧幅(V)
+DELAY_S   = 0.1     # ステップ間の待機時間(秒)
+# ==========================================
 
-    action = sys.argv[1].lower()
-    rm = pyvisa.ResourceManager('@py')
+def send_cmd(ser, cmd, expect_response=False):
+    """KeithleyへSCPIコマンドを送信し、必要なら返答を読み取る"""
+    ser.write(f"{cmd}\n".encode())
+    if expect_response:
+        return ser.readline().decode('utf-8').strip()
+    return None
 
-    try:
-        # 接続
-        inst = rm.open_resource(RESOURCE_NAME)
-        inst.baud_rate = 9600
-        inst.write_termination = '\r'
-        inst.read_termination = '\r'
-        inst.timeout = 5000
+def read_voltage(ser):
+    """現在の出力電圧を読み取る"""
+    # Keithley 2400 の :MEAS:VOLT? は "電圧,電流,抵抗,時間,ステータス" のカンマ区切りで返る
+    resp = send_cmd(ser, ":MEAS:VOLT?", expect_response=True)
+    if resp:
+        try:
+            # 最初の要素が電圧値
+            vol_str = resp.split(',')[0]
+            return float(vol_str)
+        except Exception as e:
+            print(f"読み取りエラー: {resp} ({e})", file=sys.stderr)
+            return None
+    return None
 
-        if action == "on":
-            print(f"--- HV ON: {TARGET_VOLTAGE}V へ昇圧を開始します ---")
-            inst.write("*RST")                  # 初期化
-            inst.write(":SOUR:FUNC VOLT")       # 電圧源モード
-            inst.write(":SENS:CURR:PROT " + str(COMPLIANCE_CURR)) # 電流制限
-            inst.write(":SOUR:VOLT:RANG 200")   # 200Vレンジに固定 (120V出力のため)
-            inst.write(":OUTP ON")              # 出力開始 (最初は0V)
+def set_voltage(ser, voltage):
+    """電圧をセットする"""
+    send_cmd(ser, f":SOUR:VOLT:LEV {voltage}")
 
-            # 0Vから目標電圧まで段階的に上げる (Ramp-up)
-            current_v = 0.0
-            while current_v < TARGET_VOLTAGE:
-                current_v += STEP_VOLTAGE
-                if current_v > TARGET_VOLTAGE: current_v = TARGET_VOLTAGE
-                inst.write(f":SOUR:VOLT {current_v}")
-                print(f"Current Set: {current_v} V")
-                time.sleep(STEP_DELAY)
-            print("120V 到達。出力を維持します。")
+def ramp_voltage(ser, target_voltage):
+    """安全に電圧を目標値までランプ（徐々に変化）させる"""
+    current_voltage = read_voltage(ser)
+    if current_voltage is None:
+        print("現在の電圧が読み取れません。安全のため処理を中断します。", file=sys.stderr)
+        sys.exit(1)
 
-        elif action == "off":
-            print("--- HV OFF: 降圧して停止します ---")
-            # 安全のため段階的に下げる (Ramp-down)
-            # 現在の電圧を取得（簡易的に120Vから下げると想定）
-            for v in range(int(TARGET_VOLTAGE), -1, -int(STEP_VOLTAGE)):
-                inst.write(f":SOUR:VOLT {v}")
-                time.sleep(STEP_DELAY / 2)
-            
-            inst.write(":SOUR:VOLT 0")
-            inst.write(":OUTP OFF")
-            print("出力を停止しました。")
+    print(f"[Keithley 2400] 現在の電圧: {current_voltage:.3f} V -> 目標電圧: {target_voltage:.3f} V")
+    
+    # もし現在出力がOFFなら、いきなり電圧をかけないように0VにセットしてからONにする
+    outp_state = send_cmd(ser, ":OUTP?", expect_response=True)
+    if outp_state == "0":
+        set_voltage(ser, 0.0)
+        send_cmd(ser, ":OUTP ON")
+        current_voltage = 0.0
+        time.sleep(0.5)
 
-    except Exception as e:
-        print(f"エラーが発生しました: {e}")
-    finally:
-        if 'inst' in locals():
-            inst.close()
+    # 電圧を上げるか下げるかの方向を決定 (1: プラス方向へ, -1: マイナス方向へ)
+    direction = 1 if target_voltage > current_voltage else -1
+    v = current_voltage
+
+    while True:
+        # 目標に到達（または通り過ぎた）場合の処理
+        if (direction == 1 and v >= target_voltage) or (direction == -1 and v <= target_voltage):
+            v = target_voltage
+            set_voltage(ser, v)
+            print(f"[Keithley 2400] 到達: {v:.3f} V")
+            break
+
+        # 電圧を1ステップ進める
+        v += direction * STEP_V
+        
+        # 行き過ぎの補正
+        if (direction == 1 and v > target_voltage) or (direction == -1 and v < target_voltage):
+            v = target_voltage
+
+        set_voltage(ser, round(v, 4))
+        print(f"[Keithley 2400] 設定中... {v:.3f} V")
+        time.sleep(DELAY_S)
+
+    # 目標が0V（OFFコマンド）の場合は、0Vまで下がりきった後に完全に出力を遮断する
+    if target_voltage == 0.0:
+        send_cmd(ser, ":OUTP OFF")
+        print("出力を完全にOFFにしました。")
+
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("使い方: python3 testHV.py [on | off | status]", file=sys.stderr)
+        sys.exit(1)
+
+    command = sys.argv[1].lower()
+
+    try:
+        # ランピング中は通信を何度も行うため、1つのセッションを開きっぱなしにする（高速化・安定化）
+        with serial.Serial(USB_PORT, BAUD_RATE, timeout=1.0) as ser:
+            
+            # 手動操作を防ぐためリモートモードへ
+            send_cmd(ser, ":SYST:REM")
+
+            if command == "on":
+                print("--- 高電圧(HV)の印加を開始します (Ramp UP) ---")
+                ramp_voltage(ser, TARGET_HV)
+                print("--- 完了 ---")
+
+            elif command == "off":
+                print("--- 高電圧(HV)の遮断を開始します (Ramp DOWN) ---")
+                ramp_voltage(ser, 0.0)
+                print("--- 完了 ---")
+
+            elif command == "status":
+                vol = read_voltage(ser)
+                if vol is not None:
+                    # -1.0V 〜 +1.0V の間は完全に OFF（0）とみなす
+                    if abs(vol) < 1.0:
+                        print("0")
+                    else:
+                        print(f"{vol:.3f}")
+                else:
+                    print("0")
+
+            else:
+                print(f"エラー: 不明なコマンド '{command}' です。", file=sys.stderr)
+                # エラー時もロックを解除して終了
+                send_cmd(ser, ":SYST:LOC")
+                sys.exit(1)
+
+            # 処理が終わったらフロントパネルのロックを解除（手動操作可能にする）
+            send_cmd(ser, ":SYST:LOC")
+
+    except serial.SerialException as e:
+        print(f"シリアル通信エラー: {e}", file=sys.stderr)
+        print("※USB_PORTのパスが間違っていないか、ケーブルが抜けていないか確認してください。", file=sys.stderr)
+        sys.exit(1)

@@ -5,7 +5,7 @@ import time
 import math
 
 class ArduinoSHT85Control:
-    m_port = '/dev/ttyACM2'
+    m_port = '/dev/ttyACM0'
     m_baud = 9600
 
     def __init__(self, config):

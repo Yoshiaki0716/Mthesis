@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     #sht85 = ArduinoSHT85Control("/dev/ttyUSB2")
     #sht85 = ArduinoSHT85Control("/dev/ttyACM2") 
-    sht85 = ArduinoSHT85Control( { "port" : "/dev/ttyACM2", "baud" : 9600 } ) 
+    #sht85 = ArduinoSHT85Control( { "port" : "/dev/ttyACM2", "baud" : 9600 } ) 
     
     thermistor = ThermistorReader( device = MAX31855(11),
                                    channel = 0,
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                      channel = 0,
                      calib   = NtcCalibConfig( R25 = 100, Rext = 470, B = 4281, T0 = 273.15+27.16-1.5) )
     
-    sensors  = { 'base' : thermistor, 'surface' : ntc, 'air' : sht85 }
+    sensors  = { 'base' : thermistor, 'surface' : ntc,}# 'air' : sht85 }
     peltCtrl = None
     
     #--------------------------------------------------

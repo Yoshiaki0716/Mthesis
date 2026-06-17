@@ -385,12 +385,12 @@ class PidClient(Cmd):
         except:
             self.help_setLV_Off()
         
-    # def do_setHV_On( self, arg ):
-    #     try:
-    #         msg = self.socketCall( 'setHV_On cli' )
-    #         return msg
-    #     except:
-    #         self.help_setHV_On()
+    def do_setHV_On( self, arg ):
+        try:
+            msg = self.socketCall( 'setHV_On cli' )
+            return msg
+        except:
+            self.help_setHV_On()
         
     def do_setHV_Off( self, arg ):
         try:

@@ -31,7 +31,7 @@ except Exception as e:
 for j in range(6):
     try:
         print('=========================\n\nTexio PFR\n\n');
-        peltCtrl = TexioPFRControl( { "port":"/dev/ttyUSB_TexioPFR", "address":1, "baud":9600 } )
+        peltCtrl = TexioPFRControl( { "port":"/dev/Peltier", "address":1, "baud":9600 } )
         peltCtrl.resetAlarms()
         time.sleep(1)
         
